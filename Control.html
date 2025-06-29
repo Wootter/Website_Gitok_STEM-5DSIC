@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pico Web Server</title>
+<link type="image/png" rel="icon" href="static/RPI.png">
+<link type="text/css" rel="stylesheet" href="static/style.css">
+</head>
+
+<body>
+<nav class="nav">
+    <div class="nav-left">
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="Control.html">Control</a></li>
+    </ul>
+    </div>
+    <div class="nav-logo">
+    <ul><li><img src="static/RPI.png" href="index.html" /></li></ul>
+    </div>
+    <div class="nav-title">
+    <ul><li><b>Pico Greenhouse</b></li></ul>
+    </div>
+</nav>
+
+<div class="splitting">
+    <div class="left-section" id="control">
+        <div class="card-container">
+            <div class="title">
+            <h2 class="control-title">Control state</h2>
+            <div style="display: flex; justify-content: space-around; align-items: center; gap: 10px;">
+                <p class="manual">manual</p>
+                <label class="switch">
+                  <input type="checkbox" name="control">
+                  <span class="slider"></span>
+                </label>
+                <p class="auto">auto</p>
+              </div>
+            </div>
+        </div>
+
+        <div class="card-container">
+            <div class="card">
+            <h2>lights Control:</h2>
+            <p>lights state: <span id="lights-state">{lights_state}</span></p>
+            <label class="switch">
+                <input type="checkbox" name="lights">
+                <span class="slider"></span>
+            </label>
+            </div>
+            <div class="card">
+            <h2>pomp Control:</h2>
+            <p>pomp state: <span id="pomp-state">{pomp_state}</span></p>
+            <label class="switch">
+                <input type="checkbox" name="pomp">
+                <span class="slider"></span>
+            </label>
+            </div>
+            <div class="card">
+            <h2>ventilator Control:</h2>
+            <p>ventilator state: <span id="ventilator-state">{ventilator_state}</span></p>
+            <label class="switch">
+                <input type="checkbox" name="ventilator">
+                <span class="slider"></span>
+            </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-section" id="live-feed">
+        <div class="card-container">
+            <div class="card">
+                <table>
+                    <h2>Light Dependent Resistor</h2>
+                    <tr>
+                        <th>Lichtintensiteit:</th>
+                        <th>{ldr}%</th>
+                    </tr>
+                </table>
+            </div>
+            <div class="card">
+                <table>
+                    <h2>Soil Moisture Sensor</h2>
+                    <tr>
+                        <th>Grond Vochtigheid:</th>
+                        <th>{bodem}%</th>
+                    </tr>
+                </table>
+            </div>
+            <div class="card">
+                <table>
+                    <h2>DHT22 Sensor</h2>
+                    <tr>
+                        <th>Temperatuur:</th>
+                        <th>{temp}&deg;C</th>
+                    </tr>
+                    <tr>
+                        <th>Luchtvochtigheid:</th>
+                        <th>{hum}%</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>    
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        console.log("Fetching initial states...");
+
+        function checkControlMode() {
+            fetch('/control_state')
+                .then(response => response.text())
+                .then(state => {
+                    if (state.trim() === "ON") {
+                        // Set flag in sessionStorage that we're in auto mode
+                        sessionStorage.setItem('autoMode', 'true');
+                        // Schedule next refresh
+                        setTimeout(function() {
+                            console.log("Auto-refreshing page in auto mode");
+                            window.location.reload();
+                        }, 5000); // 60 seconds
+                    } else {
+                        // We're in manual mode, clear flag
+                        sessionStorage.removeItem('autoMode');
+                    }
+                })
+                .catch(error => console.error('Error checking control state:', error));
+        }
+        
+        // If we were in auto mode or just starting, check the control state
+        if (sessionStorage.getItem('autoMode') === 'true' || !sessionStorage.getItem('autoMode')) {
+            checkControlMode();
+        }
+        
+        // Add event listener to the control switch
+        const controlSwitch = document.querySelector("input[name='control']");
+        if (controlSwitch) {
+            controlSwitch.addEventListener('change', function() {
+                // When control switch changes, we'll check the mode again
+                setTimeout(checkControlMode, 1000); // Check after 1 second to allow server to update
+            });
+        }
+
+        const switches = {
+            lights: document.querySelector("input[name='lights']"),
+            pomp: document.querySelector("input[name='pomp']"),
+            ventilator: document.querySelector("input[name='ventilator']"),
+            control: document.querySelector("input[name='control']")
+        };
+
+        const stateTexts = {
+            lights: document.querySelector("#lights-state"),
+            pomp: document.querySelector("#pomp-state"),
+            ventilator: document.querySelector("#ventilator-state")
+        };
+
+        const fetchAndUpdateState = async (endpoint, element, stateText) => {
+            if (!endpoint) {
+                console.error("No endpoint specified for fetchAndUpdateState");
+                return;
+            }
+            
+            // Ensure endpoint starts with /
+            const fixedEndpoint = endpoint.startsWith('/') ? endpoint : '/' + endpoint;
+            
+            try {
+                console.log(`Fetching state from ${fixedEndpoint}...`);
+                const response = await fetch(fixedEndpoint, {
+                    // Add cache control to prevent caching
+                    cache: 'no-store',
+                    headers: {
+                        'Pragma': 'no-cache',
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+        
+        const state = (await response.text()).trim();
+        element.checked = state === "ON";
+        if (stateText) stateText.textContent = state;
+        console.log(`Fetched ${fixedEndpoint} state: ${state}`);
+    } catch (err) {
+        console.error(`Error fetching ${fixedEndpoint} state:`, err);
+    }
+};
+        const toggleDevice = (device, element, stateText) => {
+            const state = element.checked ? "ON" : "OFF";
+            console.log(`${device} toggled to ${state}`);
+            fetch(`/${device}?state=${state}`)
+                .then(response => response.text())
+                .then(() => {
+                    if (stateText) stateText.textContent = state;
+                })
+                .catch(err => console.error(`Error toggling ${device}:`, err));
+        };
+
+        const changeSwitches = () => {
+            const disabled = switches.control.checked;
+            ['lights', 'pomp', 'ventilator'].forEach(key => {
+                switches[key].disabled = disabled;
+            });
+        };
+
+        fetchAndUpdateState('/lights_state', switches.lights, stateTexts.lights);
+        fetchAndUpdateState('/pomp_state', switches.pomp, stateTexts.pomp);
+        fetchAndUpdateState('/ventilator_state', switches.ventilator, stateTexts.ventilator);
+        fetchAndUpdateState('/control_state', switches.control, null)
+            .then(changeSwitches);
+        
+        switches.lights.addEventListener("change", () => toggleDevice("lights", switches.lights, stateTexts.lights));
+        switches.pomp.addEventListener("change", () => toggleDevice("pomp", switches.pomp, stateTexts.pomp));
+        switches.ventilator.addEventListener("change", () => toggleDevice("ventilator", switches.ventilator, stateTexts.ventilator));
+        switches.control.addEventListener("change", () => {
+            toggleDevice("control", switches.control, null);
+            changeSwitches();
+        });
+    });
+</script>
+</body>
+</html>

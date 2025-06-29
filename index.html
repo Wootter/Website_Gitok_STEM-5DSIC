@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pico Web Server</title>
+    <link type="image/png" rel="icon" href="static/RPI.png">
+    <link type="text/css" rel="stylesheet" href="static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-left">
+            <ul>
+                <li><a href="Live_Feed.html">Home</a></li>
+                <li><a href="Control.html">Control</a></li>
+            </ul>
+        </div>
+        <div class="nav-logo">
+            <ul>
+                <li><img src="static/RPI.png" href="index.html"></img></li>
+            </ul>
+        </div>
+        <div class="nav-title">
+            <ul>
+                <li><b>Pico Greenhouse</b></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="main">
+        <h1>Raspberry Pi Greenhouse</h1>
+        <p>Op deze webserver zal je actuatoren benienen, en sensoren bekijken voor jouw greenhouse.</p>
+        <p>Dit project is gemaakt door: Wout Deelen</p>
+        <p>Klass: 5DSIC, Nr: 1.</p>
+        <table>
+            <h2>Pin configuratie</h2>
+            <tr>
+                <th>DHT 22:</th>
+                <th>Pin: {DHT_Pin}</th>
+            </tr>
+            <tr>
+                <th>Light Diode</th>
+                <th>Pin: {LDR_Pin}</th>
+            </tr>
+            <tr>
+                <th>Soil Moisture:</th>
+                <th>Pin: {SMS_Pin}</th>
+            </tr>
+        </table>
+    </div>
+</body>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</html>
