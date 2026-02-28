@@ -1,4 +1,4 @@
-encoded_ssid = 'new_data'
+encoded_ssid = 'VFAtTElOS19GNjI4'
 encoded_password = 'MzEzMDg0NTg='
 
 import ubinascii
